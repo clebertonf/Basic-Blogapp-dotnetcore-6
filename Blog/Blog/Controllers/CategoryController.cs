@@ -7,9 +7,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Blog.Controllers
 {
     [ApiController]
+    [Route("v1")]
     public class CategoryController : ControllerBase
     {
-        [HttpGet("v1/categories")]
+        [HttpGet("/categories")]
         public async Task<IActionResult> GetAsync([FromServices] BlogDataContext context)
         {
             try
@@ -23,23 +24,23 @@ namespace Blog.Controllers
             }
         }
 
-        [HttpGet("v1/categories/{id:int}")]
+        [HttpGet("/categories/{id:int}")]
         public async Task<IActionResult> GetByIdAsync([FromServices] BlogDataContext context,
                                                       [FromRoute] int id)
         {
             try
             {
-                var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
+                var category = await context.Categories
+                    .FirstOrDefaultAsync(x => x.Id == id);
                 return category is not null ? Ok(category) : NotFound();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.InnerException);
             }
-           
         }
 
-        [HttpPost("v1/categories")]
+        [HttpPost("/categories")]
         public async Task<IActionResult> PostAsync([FromServices] BlogDataContext context, 
                                                    [FromBody] EditorCategoryViewModel model)
         {
@@ -62,13 +63,11 @@ namespace Blog.Controllers
             }
             catch (Exception ex)
             {
-
                 return StatusCode(500, $"05EX10 - {ex.InnerException}");
             }
-
         }
 
-        [HttpPut("v1/categories/{id:int}")]
+        [HttpPut("/categories/{id:int}")]
         public async Task<IActionResult> PutAsync([FromServices] BlogDataContext context,
                                                    [FromRoute] int id,
                                                    [FromBody] EditorCategoryViewModel model)
@@ -85,7 +84,6 @@ namespace Blog.Controllers
                 await context.SaveChangesAsync();
 
                 return Ok(model);
-
             }
             catch (DbUpdateException ex)
             {
@@ -95,12 +93,11 @@ namespace Blog.Controllers
             {
                 return StatusCode(500, ex.InnerException);
             }
-            
         }
 
-        [HttpDelete("v1/categories/{id:int}")]
-        public async Task<IActionResult> PutAsync([FromServices] BlogDataContext context,
-                                                   [FromRoute] int id)
+        [HttpDelete("/categories/{id:int}")]
+        public async Task<IActionResult> DeleteAsync([FromServices] BlogDataContext context,
+                                                     [FromRoute] int id)
         {
             try
             {

@@ -8,10 +8,10 @@ namespace Blog.Data.Mappings
     {
         public void Configure(EntityTypeBuilder<Category> builder)
         {
-            // Tabela
+            // Table
             builder.ToTable("Category");
 
-            // Chave Primária
+            // Primary key
             builder.HasKey(x => x.Id);
 
             // Identity
@@ -19,7 +19,7 @@ namespace Blog.Data.Mappings
                 .ValueGeneratedOnAdd()
                 .UseIdentityColumn();
 
-            // Propriedades
+            // Properties
             builder.Property(x => x.Name)
                 .IsRequired()
                 .HasColumnName("Name")
@@ -32,7 +32,7 @@ namespace Blog.Data.Mappings
                 .HasColumnType("VARCHAR")
                 .HasMaxLength(80);
 
-            // Índices
+            // Indexes
             builder
                 .HasIndex(x => x.Slug, "IX_Category_Slug")
                 .IsUnique();

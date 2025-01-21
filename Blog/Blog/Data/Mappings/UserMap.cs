@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Blog.Models;
+﻿using Blog.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,10 +8,10 @@ namespace Blog.Data.Mappings
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            // Tabela
+            // Table
             builder.ToTable("User");
 
-            // Chave Primária
+            // Primary key
             builder.HasKey(x => x.Id);
 
             // Identity
@@ -20,30 +19,30 @@ namespace Blog.Data.Mappings
                 .ValueGeneratedOnAdd()
                 .UseIdentityColumn();
 
-            // Propriedades
+            // Properties
             builder.Property(x => x.Name)
                 .IsRequired()
                 .HasColumnName("Name")
                 .HasColumnType("NVARCHAR")
                 .HasMaxLength(80);
-
-            builder.Property(x => x.Bio);
-            builder.Property(x => x.Email);
-            builder.Property(x => x.Image);
-            builder.Property(x => x.PasswordHash);
+            
+            builder.Property(x => x.Email).HasMaxLength(30);
+            builder.Property(x => x.PasswordHash).HasMaxLength(200);
+            builder.Property(x => x.Image).HasMaxLength(200);
+            builder.Property(x => x.Bio).HasMaxLength(200);
 
             builder.Property(x => x.Slug)
                 .IsRequired()
                 .HasColumnName("Slug")
                 .HasColumnType("VARCHAR")
                 .HasMaxLength(80);
-
-            // Índices
+            
+            // Indexes
             builder
                 .HasIndex(x => x.Slug, "IX_User_Slug")
                 .IsUnique();
 
-            // Relacionamentos
+            // Relationships
             builder
                 .HasMany(x => x.Roles)
                 .WithMany(x => x.Users)

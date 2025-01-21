@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Blog.Models;
+﻿using Blog.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,10 +8,10 @@ namespace Blog.Data.Mappings
     {
         public void Configure(EntityTypeBuilder<Post> builder)
         {
-            // Tabela
+            // Table
             builder.ToTable("Post");
 
-            // Chave Primária
+            // Primary key
             builder.HasKey(x => x.Id);
 
             // Identity
@@ -21,7 +19,7 @@ namespace Blog.Data.Mappings
                 .ValueGeneratedOnAdd()
                 .UseIdentityColumn();
 
-            // Propriedades
+            // Properties
             builder.Property(x => x.LastUpdateDate)
                 .IsRequired()
                 .HasColumnName("LastUpdateDate")
@@ -30,12 +28,17 @@ namespace Blog.Data.Mappings
                 .HasDefaultValueSql("GETDATE()");
             // .HasDefaultValue(DateTime.Now.ToUniversalTime());
 
-            // Índices
+            builder.Property(x => x.Title).HasMaxLength(30);
+            builder.Property(x => x.Summary).HasMaxLength(50);
+            builder.Property(x => x.Body).HasMaxLength(50);
+            builder.Property(x => x.Slug).HasMaxLength(50);
+            
+            // Indexes
             builder
                 .HasIndex(x => x.Slug, "IX_Post_Slug")
                 .IsUnique();
 
-            // Relacionamentos
+            // Relationships
             builder
                 .HasOne(x => x.Author)
                 .WithMany(x => x.Posts)
@@ -48,7 +51,7 @@ namespace Blog.Data.Mappings
                 .HasConstraintName("FK_Post_Category")
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relacionamentos
+            // Relationships
             builder
                 .HasMany(x => x.Tags)
                 .WithMany(x => x.Posts)
