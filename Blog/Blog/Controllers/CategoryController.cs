@@ -1,4 +1,5 @@
 ﻿using Blog.Data;
+using Blog.Extensions;
 using Blog.Models;
 using Blog.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,11 @@ namespace Blog.Controllers
             try
             {
                 var categories = await context.Categories.ToListAsync();
-                return Ok(categories);
+                return Ok(new ResultViewModel<List<Category>>(categories));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException);
+                return StatusCode(500, new ResultViewModel<List<Category>>(ex.Message));
             }
         }
 
@@ -32,11 +33,13 @@ namespace Blog.Controllers
             {
                 var category = await context.Categories
                     .FirstOrDefaultAsync(x => x.Id == id);
-                return category is not null ? Ok(category) : NotFound();
+                
+                return category is not null ? Ok(new ResultViewModel<Category>(category))
+                    : NotFound(new ResultViewModel<Category>("Category not found"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException);
+                return StatusCode(500, new ResultViewModel<Category>(ex.Message));
             }
         }
 
@@ -44,6 +47,9 @@ namespace Blog.Controllers
         public async Task<IActionResult> PostAsync([FromServices] BlogDataContext context, 
                                                    [FromBody] EditorCategoryViewModel model)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new ResultViewModel<Category>(ModelState.GetErros()));
+            
             try
             {
                 var category = new Category
@@ -55,15 +61,15 @@ namespace Blog.Controllers
                 await context.Categories.AddAsync(category);
                 await context.SaveChangesAsync();
 
-                return Created($"v1/categories/{category.Id}", category);
+                return Created($"v1/categories/{category.Id}", new ResultViewModel<Category>(category));
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"05EX09 - {ex.InnerException}");
+                return StatusCode(500,  new ResultViewModel<Category>($"05EX09 - {ex.Message}"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"05EX10 - {ex.InnerException}");
+                return StatusCode(500, new ResultViewModel<Category>($"05EX10 - {ex.InnerException}"));
             }
         }
 
@@ -75,7 +81,7 @@ namespace Blog.Controllers
             try
             {
                 var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
-                if (category is null) return NotFound();
+                if (category is null) return NotFound(new ResultViewModel<Category>("Category not found"));
 
                 category.Name = model.Name;
                 category.Slug = model.Slug;
@@ -83,15 +89,15 @@ namespace Blog.Controllers
                 context.Categories.Update(category);
                 await context.SaveChangesAsync();
 
-                return Ok(model);
+                return Ok( new ResultViewModel<Category>(category));
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"05EX09 - {ex.InnerException}");
+                return StatusCode(500, new ResultViewModel<Category>($"05EX09 - {ex.Message}"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException);
+                return StatusCode(500, new ResultViewModel<Category>($"05EX10- {ex.Message}"));
             }
         }
 
@@ -102,20 +108,20 @@ namespace Blog.Controllers
             try
             {
                 var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
-                if (category is null) return NotFound();
+                if (category is null) return NotFound(new ResultViewModel<Category>("Category not found"));
 
                 context.Categories.Remove(category);
                 await context.SaveChangesAsync();
 
-                return Ok(category);
+                return Ok(new ResultViewModel<Category>(category));
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"05EX09 - {ex.InnerException}");
+                return StatusCode(500, new ResultViewModel<Category>($"05EX09 - {ex.Message}"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException);
+                return StatusCode(500, new ResultViewModel<Category>(ex.Message));
             }
         }
     }
