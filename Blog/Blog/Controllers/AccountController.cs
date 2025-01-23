@@ -20,7 +20,7 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost("v1/accounts")]
-    public async Task<IActionResult> Register([FromBody] RegisterViewModel model, [FromServices] BlogDataContext context)
+    public async Task<IActionResult> Register([FromBody] RegisterViewModel model, [FromServices] BlogDataContext context, [FromServices] EmailService emailService)
     {
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<string>(ModelState.GetErros()));
@@ -40,9 +40,11 @@ public class AccountController : ControllerBase
             await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
 
+            emailService.Send(user.Name, user.Email, subject: "Your account has been created.", body: $"Your Password has been created: <strong>{password}</strong>.");
+            
             return Ok(new ResultViewModel<dynamic>(new
             {
-                user = user.Email, password // send email
+                user = user.Email
             }));
         }
         catch (DbUpdateException e)
