@@ -6,6 +6,7 @@ using Blog.Data;
 using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,7 +38,11 @@ builder.Services.AddControllers()
         jsonOptions.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
     });
 
-builder.Services.AddDbContext<BlogDataContext>();
+builder.Services.AddDbContext<BlogDataContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
+});
 builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<EmailService>();
 
@@ -58,7 +63,6 @@ if (app.Environment.IsDevelopment())
 LoadConfiguration(app);
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseResponseCompression();
@@ -68,15 +72,15 @@ app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
-void LoadConfiguration(WebApplication app)
+void LoadConfiguration(WebApplication webApp)
 {
-    Configuration.JwtKey = app.Configuration.GetValue<string>("JwtKey"); 
-    Configuration.ApiKeyName = app.Configuration.GetValue<string>("ApiKeyName");
-    Configuration.ApiKey = app.Configuration.GetValue<string>("ApiKey");
+    Configuration.JwtKey = webApp.Configuration.GetValue<string>("JwtKey"); 
+    Configuration.ApiKeyName = webApp.Configuration.GetValue<string>("ApiKeyName");
+    Configuration.ApiKey = webApp.Configuration.GetValue<string>("ApiKey");
 // Configuration.Smtp = app.Configuration.GetValue<Configuration.SmtpConfiguration>("Smtp");
 
     var smtp = new Configuration.SmtpConfiguration();
-    app.Configuration.GetSection("Smtp").Bind(smtp);
+    webApp.Configuration.GetSection("Smtp").Bind(smtp);
     Configuration.Smtp = smtp;
 }
 

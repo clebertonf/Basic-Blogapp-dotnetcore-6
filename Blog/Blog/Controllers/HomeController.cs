@@ -16,5 +16,14 @@ namespace Blog.Controllers
                 message = "It's alive!"
             });
         }
+        
+        [HttpGet("/env")]
+        public IActionResult GetEnv([FromServices] IConfiguration config)
+        {
+            return Ok(new
+            {
+                Environment = config.GetValue<string>("Env")
+            });
+        }
     }
 }
