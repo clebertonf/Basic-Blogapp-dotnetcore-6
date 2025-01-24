@@ -1,19 +1,42 @@
+using System.IO.Compression;
 using System.Text;
+using System.Text.Json.Serialization;
 using Blog;
 using Blog.Data;
 using Blog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Add authetication
 ConfigureAuthentication(builder);
 
 // Add services to the container.
 
-builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true); // deactivate validation data annotation
+// cache
+builder.Services.AddMemoryCache();
+
+// compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.Providers.Add<GzipCompressionProvider>();
+});
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+        options.SuppressModelStateInvalidFilter = true) // deactivate validation data annotation
+    .AddJsonOptions(jsonOptions =>
+    {
+        jsonOptions.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        jsonOptions.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+    });
+
 builder.Services.AddDbContext<BlogDataContext>();
 builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<EmailService>();
@@ -38,6 +61,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseResponseCompression();
 
 // To add static files, but only for educational purposes
 app.UseStaticFiles();

@@ -118,7 +118,7 @@ public class AccountController : ControllerBase
             return StatusCode(500, new ResultViewModel<string>(e.Message));
         }
         
-        return Ok(new ResultViewModel<string>($"Image has been uploaded!"));
+        return Ok(new ResultViewModel<string>($"Image has been uploaded!", null));
     }
     
     /*
