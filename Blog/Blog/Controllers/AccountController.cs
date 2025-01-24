@@ -1,8 +1,11 @@
-﻿using Blog.Data;
+﻿using System.Text.RegularExpressions;
+using Blog.Data;
 using Blog.Extensions;
 using Blog.Models;
 using Blog.Services;
 using Blog.ViewModels;
+using Blog.ViewModels.Accounts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SecureIdentity.Password;
@@ -44,11 +47,10 @@ public class AccountController : ControllerBase
             
             return Ok(new ResultViewModel<dynamic>(new
             {
-                user = user.Email
+                user = user.Email, password // for debug
             }));
         }
-        catch (DbUpdateException e)
-        {
+        catch (DbUpdateException e) {
            return BadRequest(new ResultViewModel<string>(e.Message));
         }
     }
@@ -79,6 +81,44 @@ public class AccountController : ControllerBase
         {
            return StatusCode(500, new ResultViewModel<string>(e.Message));
         }
+    }
+
+    [Authorize]
+    [HttpPost("v1/accounts/upload-image")]
+    public async Task<IActionResult> UploadImage([FromBody] UploadImageViewModel model, [FromServices] BlogDataContext context)
+    {
+        // This method to add static files, but only for educational purposes
+        var fileName = $"{Guid.NewGuid().ToString()}.jpg";
+        var data = new Regex(@"data:imageV[a-z]+;base64,]").Replace(model.Base64Image, "");
+        var bytes = Convert.FromBase64String(data);
+
+        try
+        {
+            await System.IO.File.WriteAllBytesAsync($"wwwroot/images/{fileName}", bytes);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new ResultViewModel<string>(e.Message));
+        }
+
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == User.Identity.Name);
+        
+        if(user is null)
+            return Unauthorized(new ResultViewModel<string>($"Userr not found!"));
+        
+        user.Image = $"https://localhost:5001/images/{fileName}";
+
+        try
+        {
+            context.Users.Update(user);
+            await context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new ResultViewModel<string>(e.Message));
+        }
+        
+        return Ok(new ResultViewModel<string>($"Image has been uploaded!"));
     }
     
     /*

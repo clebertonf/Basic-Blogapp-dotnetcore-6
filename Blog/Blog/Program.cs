@@ -39,6 +39,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// To add static files, but only for educational purposes
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
