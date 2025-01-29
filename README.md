@@ -1,6 +1,6 @@
 # blog-app
 ---
-Blog project applying concepts in the practice of:
+Blog project with crud applying concepts in the practice of:
 
 - EF core
 - View models
